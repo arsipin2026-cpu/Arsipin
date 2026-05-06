@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Interaktif - Arsipin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-element.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes slideInUpFade {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-question {
+            animation: slideInUpFade 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        #toast { 
+            visibility: hidden; 
+            min-width: 250px; 
+            text-align: center; 
+            border-radius: 999px; 
+            padding: 12px 24px; 
+            position: fixed; 
+            z-index: 100; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            opacity: 0; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            font-weight: 600; 
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2); 
+        }
+        #toast.show { 
+            visibility: visible; 
+            opacity: 1; 
+            bottom: 50px; 
+        }
+    </style>
+</head>
+<body class="bg-[#FAFAFA] text-slate-800 min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900 overflow-x-hidden">
+
+    <div id="toast">Notifikasi</div>
+
+    <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="font-bold text-2xl tracking-tight text-white flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-10 w-auto">
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="index.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-full font-semibold text-sm shadow-inner hover:bg-slate-700 transition-all">Materi</a>
+                    <a href="video.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Video</a>
+                    <a href="simulasi.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Simulasi</a>
+                    <a href="kuis.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-full font-semibold text-sm ml-4 transition-all shadow-sm hover:shadow-lg hover:-translate-y-1">Main Kuis!</a>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white transition-colors focus:outline-none">
+                    <svg id="menuIcon" class="w-7 h-7 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 py-4 space-y-2 shadow-xl absolute w-full opacity-0 -translate-y-4 transition-all duration-300 ease-in-out">
+            <a href="index.html" class="block py-3 px-4 bg-slate-800 rounded-xl font-semibold text-indigo-400 hover:scale-[1.02] transition-transform">Materi Pengantar</a>
+            <a href="video.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Video Pembelajaran</a>
+            <a href="simulasi.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Simulasi Praktik</a>
+            <a href="kuis.html" class="block py-3 px-4 bg-indigo-600 text-white rounded-xl text-center mt-4 font-semibold shadow-sm hover:bg-indigo-500 hover:scale-[1.02] transition-all">Main Kuis!</a>
+        </div>
+    </nav>
+
+    <main class="flex-grow flex flex-col justify-center items-center px-4 py-12 md:py-20 w-full max-w-7xl mx-auto relative">
+        
+        <div class="w-full max-w-2xl bg-white p-10 md:p-16 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center transition-all duration-500 ease-out transform opacity-100 scale-100 absolute z-20" id="start-area">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-indigo-50 text-indigo-600 rounded-full mb-8 text-4xl animate-bounce">🚀</div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Uji Pengetahuanmu!</h2>
+            <p class="text-slate-500 mb-10 text-base leading-relaxed">Setiap soal hanya memiliki batas waktu <span class="text-indigo-600 font-bold">30 detik</span>. Jawab dengan cepat dan tepat untuk mendapatkan skor tertinggi.</p>
+            
+            <button onclick="startQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-10 py-4 rounded-full font-bold text-lg transition-all duration-300 shadow-[0_4px_14px_0_rgba(79,70,229,0.39)] hover:shadow-[0_6px_20px_rgba(79,70,229,0.23)] hover:-translate-y-1 w-full md:w-auto">
+                Mulai Kuis Sekarang
+            </button>
+        </div>
+
+        <div class="w-full max-w-3xl bg-white p-6 md:p-10 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden transition-all duration-500 ease-out transform opacity-0 scale-95 hidden absolute z-10" id="quiz-area">
+            
+            <div class="absolute top-0 left-0 w-full h-1.5 bg-slate-100">
+                <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-700 ease-out" style="width: 0%;"></div>
+            </div>
+            
+            <div class="flex justify-between items-center mb-8 mt-2 text-sm md:text-base">
+                <div class="bg-slate-50 px-4 py-2 rounded-xl font-semibold text-slate-500 border border-slate-200/60 flex items-center gap-1.5">
+                    <span class="text-indigo-600 text-lg" id="current-question-num">1</span> <span class="text-slate-400">/</span> <span id="total-question-num">10</span>
+                </div>
+                
+                <div id="timer-box" class="bg-indigo-50 text-indigo-700 px-5 py-2 rounded-full font-bold border border-indigo-100 flex items-center gap-2 transition-colors">
+                    ⏳ <span id="timer-display">30</span>s
+                </div>
+
+                <div class="bg-slate-50 px-4 py-2 rounded-xl font-semibold text-slate-500 border border-slate-200/60 flex items-center gap-2">
+                    <span class="hidden md:inline">Skor:</span>
+                    <span id="score" class="text-amber-500 font-extrabold text-lg transition-transform duration-300 inline-block">0</span>
+                </div>
+            </div>
+            
+            <div id="quiz-content">
+                <div class="mb-10 min-h-[100px] flex items-center justify-center">
+                    <h3 id="question-text" class="text-xl md:text-2xl font-bold text-center text-slate-900 leading-snug">Memuat Pertanyaan...</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="btn-0" onclick="checkAnswer(0)" class="quiz-btn"></button>
+                    <button id="btn-1" onclick="checkAnswer(1)" class="quiz-btn"></button>
+                    <button id="btn-2" onclick="checkAnswer(2)" class="quiz-btn"></button>
+                    <button id="btn-3" onclick="checkAnswer(3)" class="quiz-btn"></button>
+                </div>
+            </div>
+            
+            <div class="mt-8 pt-6 border-t border-slate-100 text-right transition-all duration-300 opacity-0 hidden" id="next-btn-container">
+                <button onclick="nextQuestion()" class="bg-slate-900 hover:bg-slate-800 text-white px-8 py-3.5 w-full md:w-auto rounded-full font-semibold transition-all hover:shadow-lg hover:-translate-y-1 flex items-center justify-center gap-2 md:inline-flex">
+                    <span id="next-btn-text">Selanjutnya</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="w-full max-w-2xl bg-white p-10 md:p-16 rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center transition-all duration-500 ease-out transform opacity-0 scale-95 hidden absolute z-30" id="result-area">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-amber-50 text-amber-500 rounded-full mb-6 text-5xl">🏆</div>
+            <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Kuis Selesai!</h2>
+            <p class="text-slate-500 mb-10">Kerja bagus! Berikut adalah skor akhir dari sesi belajarmu hari ini:</p>
+            
+            <div class="bg-indigo-50 border border-indigo-100 rounded-3xl p-8 mb-10 inline-block min-w-[280px] hover:scale-105 transition-transform duration-300">
+                <span class="block text-indigo-400 font-bold mb-1 tracking-widest text-xs uppercase">Total Skor</span>
+                <span id="final-score" class="text-6xl md:text-7xl font-black text-indigo-600">0</span> 
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-center gap-4">
+                <button onclick="restartQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-full font-semibold transition-all shadow-md hover:shadow-lg hover:-translate-y-1 w-full md:w-auto flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Main Lagi
+                </button>
+                <a href="index.html" class="bg-white text-slate-700 border-2 border-slate-200 px-8 py-3.5 rounded-full font-semibold hover:bg-slate-50 hover:border-slate-300 hover:-translate-y-1 transition-all shadow-sm hover:shadow-md w-full md:w-auto text-center">
+                    Kembali ke Materi
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900/95 border-t border-slate-800 w-full mt-auto reveal-element relative z-0">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 font-medium">
+                <div class="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-7 w-auto">
+                </div>
+                <p>&copy; 2026 arsipin. All rights reserved.</p>
+                <p>Dibuat dengan <span class="text-rose-500 animate-pulse inline-block">❤️</span> untuk pendidikan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() { 
+            const menu = document.getElementById("mobileMenu");
+            const icon = document.getElementById("menuIcon");
+            
+            if (menu.classList.contains("hidden")) {
+                menu.classList.remove("hidden");
+                setTimeout(() => {
+                    menu.classList.remove("opacity-0", "-translate-y-4");
+                    menu.classList.add("opacity-100", "translate-y-0");
+                    icon.classList.add("rotate-90");
+                }, 10);
+            } else {
+                menu.classList.remove("opacity-100", "translate-y-0");
+                menu.classList.add("opacity-0", "-translate-y-4");
+                icon.classList.remove("rotate-90");
+                setTimeout(() => {
+                    menu.classList.add("hidden");
+                }, 300); 
+            }
+        }
+
+        function switchView(hideId, showId, callback) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            
+            hideEl.classList.remove("opacity-100", "scale-100");
+            hideEl.classList.add("opacity-0", "scale-95");
+            
+            setTimeout(() => {
+                hideEl.classList.add("hidden");
+                showEl.classList.remove("hidden");
+                
+                void showEl.offsetWidth; 
+                
+                showEl.classList.remove("opacity-0", "scale-95");
+                showEl.classList.add("opacity-100", "scale-100");
+                
+                setTimeout(() => {
+                    hideEl.classList.add("absolute"); 
+                    showEl.classList.remove("absolute");
+                    if(callback) callback();
+                }, 500);
+
+            }, 300); 
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const revealElements = document.querySelectorAll('.reveal-element');
+            const elementObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            revealElements.forEach(el => elementObserver.observe(el));
+        });
+
+        function showToast(msg, type) {
+            const toast = document.getElementById("toast");
+            toast.innerHTML = msg;
+            
+            if(type === 'green') {
+                toast.className = 'show bg-emerald-100 text-emerald-800 border border-emerald-200';
+            } else {
+                toast.className = 'show bg-rose-100 text-rose-800 border border-rose-200';
+            }
+            
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+        }
+
+        function animateScoreValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 4); 
+                obj.innerHTML = Math.floor(easeProgress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = end;
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        let quizData = [
+            {
+                question: "Seorang petugas arsip menerima surat lamaran kerja dari beberapa pelamar. Setelah membaca isi surat, petugas langsung mengelompokkan surat tersebut ke dalam bagian kepegawaian. Langkah yang dilakukan petugas tersebut menunjukkan bahwa sistem subjek didasarkan pada…",
+                options: ["Tanggal masuk surat", "Nama pengirim surat", "Isi atau pokok masalah surat", "Nomor agenda surat"],
+                correctIndex: 2
+            },
+            {
+                question: "Di sebuah kantor, arsip disusun berdasarkan topik seperti keuangan, pemasaran, dan kepegawaian. Namun, sering terjadi perbedaan pemahaman antar petugas dalam menentukan subjek suatu surat. Masalah tersebut menunjukkan kelemahan sistem subjek, yaitu…",
+                options: ["Sulit diterapkan secara digital", "Bergantung pada interpretasi masing-masing petugas", "Tidak memiliki kode klasifikasi", "Tidak bisa digunakan untuk surat resmi"],
+                correctIndex: 1
+            },
+            {
+                question: "Bagas ingin menyimpan surat tentang cuti sakit karyawan. Ia membaca isi surat terlebih dahulu, kemudian menentukan bahwa surat tersebut termasuk subjek “cuti sakit”. Langkah yang dilakukan Bagas disebut…",
+                options: ["Menyortir", "Mengode", "Mengindeks", "Menempatkan"],
+                correctIndex: 2
+            },
+            {
+                question: "Setelah menentukan subjek surat “cuti sakit”, petugas menuliskan kode KP.03.1 pada surat tersebut sesuai daftar klasifikasi yang tersedia. Kegiatan tersebut disebut…",
+                options: ["Mengindeks", "Mengode", "Menyortir", "Memeriksa"],
+                correctIndex: 1
+            },
+            {
+                question: "Di ruang arsip, surat-surat yang memiliki kode sama dikumpulkan menjadi satu sebelum disimpan ke dalam folder. Langkah tersebut merupakan kegiatan…",
+                options: ["Menempatkan", "Mengindeks", "Menyortir", "Memeriksa"],
+                correctIndex: 2
+            },
+            {
+                question: "Seorang petugas ingin mencari arsip tentang pajak PPh tahun 2022. Ia mulai mencari dari kategori keuangan, kemudian ke subjek pajak, lalu ke bagian PPh hingga menemukan arsip yang dimaksud. Proses tersebut menunjukkan bahwa penemuan arsip dilakukan secara…",
+                options: ["Acak", "Kronologis", "Bertahap dari umum ke khusus", "Berdasarkan warna map"],
+                correctIndex: 2
+            },
+            {
+                question: "Dalam suatu kantor, arsip sering sulit ditemukan karena petugas tidak mengembalikan arsip ke tempat semula setelah digunakan. Hal ini merupakan contoh…",
+                options: ["Kelebihan sistem subjek", "Prinsip penemuan arsip", "Kendala dalam penemuan kembali arsip", "Tujuan penyimpanan arsip"],
+                correctIndex: 2
+            },
+            {
+                question: "Sebuah perusahaan menggunakan sistem penyimpanan digital dengan bantuan komputer, scanner, dan cloud storage untuk menyimpan dokumen berdasarkan subjek. Peralatan tersebut termasuk…",
+                options: ["Arsip manual", "Arsip aktif", "Arsip digital", "Arsip statis"],
+                correctIndex: 2
+            },
+            {
+                question: "Seorang petugas arsip dapat dengan cepat menemukan dokumen hanya dengan mengetahui topik surat tanpa harus membaca seluruh isi dokumen. Hal ini menunjukkan tujuan sistem subjek yaitu…",
+                options: ["Mengurangi jumlah arsip", "Mempercepat pencarian arsip", "Menghapus arsip lama", "Mengganti sistem lama"],
+                correctIndex: 1
+            },
+            {
+                question: "Dalam sebuah instansi, digunakan kode seperti KU.01.1 untuk kwitansi dan KP.02.1 untuk presensi karyawan. Kode tersebut merupakan contoh dari…",
+                options: ["Sistem subjek murni", "Sistem kronologis", "Sistem subjek bernotasi", "Sistem numerik"],
+                correctIndex: 2
+            },
+            {
+                question: "Sebuah kantor menerima surat tentang pembayaran gaji karyawan. Petugas langsung mengelompokkan surat tersebut ke dalam bagian keuangan. Tindakan tersebut menunjukkan fungsi sistem subjek yaitu…",
+                options: ["Mengelompokkan berdasarkan waktu", "Mengelompokkan berdasarkan isi dokumen", "Mengelompokkan berdasarkan nama pengirim", "Mengelompokkan berdasarkan nomor surat"],
+                correctIndex: 1
+            },
+            {
+                question: "Dalam suatu instansi, petugas arsip menggunakan daftar klasifikasi yang dibuat sendiri tanpa kode, hanya berupa daftar istilah yang disusun alfabetis. Jenis sistem subjek tersebut adalah…",
+                options: ["Sistem numerik", "Sistem subjek bernotasi", "Sistem subjek murni", "Sistem kronologis"],
+                correctIndex: 2
+            },
+            {
+                question: "Seorang petugas salah menempatkan arsip “laporan laba rugi” ke dalam bagian pemasaran, padahal seharusnya masuk ke keuangan. Kesalahan tersebut terjadi pada tahap…",
+                options: ["Menyortir", "Mengindeks", "Menempatkan", "Mengode"],
+                correctIndex: 1
+            },
+            {
+                question: "Di kantor X, arsip disusun dengan kode seperti PM.00.3 (penawaran) dan KU.02.3 (laporan laba rugi). Hal ini menunjukkan bahwa sistem yang digunakan adalah…",
+                options: ["Sistem abjad", "Sistem subjek murni", "Sistem subjek bernotasi", "Sistem wilayah"],
+                correctIndex: 2
+            },
+            {
+                question: "Petugas arsip menemukan bahwa beberapa arsip sulit dicari karena daftar klasifikasi yang digunakan tidak jelas dan tidak lengkap. Hal ini menunjukkan pentingnya…",
+                options: ["Penggunaan map warna-warni", "Panduan klasifikasi yang jelas", "Penyimpanan digital", "Penggunaan nomor surat"],
+                correctIndex: 1
+            },
+            {
+                question: "Dalam proses penyimpanan, petugas memastikan surat sudah selesai diproses sebelum disimpan dan terdapat tanda bahwa surat boleh diarsipkan. Langkah ini disebut…",
+                options: ["Mengode", "Memeriksa berkas", "Menyortir", "Menempatkan"],
+                correctIndex: 1
+            },
+            {
+                question: "Seorang pegawai mencari arsip undangan seminar. Ia langsung menuju bagian “umum”, lalu ke subbagian “undangan”, dan akhirnya menemukan arsip tersebut. Hal ini menunjukkan bahwa sistem subjek…",
+                options: ["Tidak efektif", "Mempermudah pencarian secara logis", "Membutuhkan waktu lama", "Hanya cocok untuk arsip lama"],
+                correctIndex: 1
+            },
+            {
+                question: "Dalam sebuah kantor, arsip disimpan menggunakan hanging folder, guide, dan filing cabinet. Peralatan tersebut termasuk…",
+                options: ["Arsip digital", "Arsip aktif", "Peralatan arsip manual", "Arsip dinamis"],
+                correctIndex: 2
+            },
+            {
+                question: "Seorang petugas arsip mencampur beberapa surat dengan kode berbeda dalam satu folder tanpa pengelompokan. Akibat dari tindakan tersebut adalah…",
+                options: ["Arsip lebih rapi", "Arsip lebih cepat ditemukan", "Menyulitkan proses penemuan kembali", "Menghemat tempat penyimpanan"],
+                correctIndex: 2
+            },
+            {
+                question: "Dalam sistem subjek, jika petugas tidak konsisten dalam menentukan indeks dan kode, maka dampak yang paling mungkin terjadi adalah…",
+                options: ["Arsip cepat rusak", "Arsip sulit ditemukan kembali", "Arsip menjadi lebih sedikit", "Arsip lebih mudah dipindahkan"],
+                correctIndex: 1
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+        
+        let timerInterval;
+        const TIME_LIMIT = 30;
+        let timeLeft = TIME_LIMIT;
+
+        const questionText = document.getElementById("question-text");
+        const currentNumDisplay = document.getElementById("current-question-num");
+        const totalNumDisplay = document.getElementById("total-question-num");
+        const scoreDisplay = document.getElementById("score");
+        const progressBar = document.getElementById("progress-bar");
+        const nextBtnContainer = document.getElementById("next-btn-container");
+        const nextBtnText = document.getElementById("next-btn-text");
+        const timerDisplay = document.getElementById("timer-display");
+        const timerBox = document.getElementById("timer-box");
+        const quizContent = document.getElementById("quiz-content"); 
+        const buttons = [
+            document.getElementById("btn-0"),
+            document.getElementById("btn-1"),
+            document.getElementById("btn-2"),
+            document.getElementById("btn-3")
+        ];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            totalNumDisplay.innerText = quizData.length;
+        });
+
+        function startQuiz() {
+            shuffleArray(quizData);
+            
+            switchView("start-area", "quiz-area", () => {
+                loadQuestion();
+            });
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            
+            nextBtnContainer.classList.add("hidden");
+            nextBtnContainer.classList.remove("opacity-100");
+            nextBtnContainer.classList.add("opacity-0");
+            
+            const currentQuiz = quizData[currentQuestionIndex];
+            
+            const correctAnswerText = currentQuiz.options[currentQuiz.correctIndex];
+            
+            shuffleArray(currentQuiz.options);
+            
+            currentQuiz.correctIndex = currentQuiz.options.indexOf(correctAnswerText);
+
+            quizContent.classList.remove("animate-question");
+            void quizContent.offsetWidth; 
+            quizContent.classList.add("animate-question");
+
+            currentNumDisplay.innerText = currentQuestionIndex + 1;
+            questionText.innerText = currentQuiz.question;
+            
+            const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+            progressBar.style.width = progressPercent + "%";
+
+            buttons.forEach((btn, index) => {
+                btn.innerHTML = `
+                    <span class="font-medium pr-4 z-10">${currentQuiz.options[index]}</span>
+                    <span class="w-5 h-5 rounded-full border-2 border-slate-300 group-hover:border-indigo-400 flex-shrink-0 transition-colors z-10"></span>
+                    <div class="absolute inset-0 bg-indigo-50 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300 rounded-2xl z-0"></div>
+                `;
+                btn.className = "quiz-btn relative overflow-hidden bg-white border-2 border-slate-200 text-slate-700 p-4 md:p-5 rounded-2xl text-left hover:border-indigo-300 hover:text-indigo-700 transition-colors text-sm md:text-base flex justify-between items-center group cursor-pointer w-full outline-none focus:ring-4 focus:ring-indigo-100 hover:-translate-y-1 hover:shadow-md duration-300";
+                btn.disabled = false;
+            });
+
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = TIME_LIMIT;
+            timerDisplay.innerText = timeLeft;
+            
+            timerBox.className = "bg-indigo-50 text-indigo-700 px-5 py-2 rounded-full font-bold border border-indigo-100 flex items-center gap-2 transition-colors";
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    timerBox.className = "bg-rose-50 text-rose-600 px-5 py-2 rounded-full font-bold border border-rose-200 flex items-center gap-2 animate-pulse";
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        function disableAllButtons() {
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-60', 'cursor-not-allowed');
+                btn.classList.remove('hover:border-indigo-300', 'hover:text-indigo-700', 'hover:-translate-y-1', 'hover:shadow-md');
+                const bgOverlay = btn.querySelector('.absolute.inset-0');
+                if(bgOverlay) bgOverlay.remove();
+            });
+        }
+
+        function setCorrectUI(btn, text) {
+            btn.className = "quiz-btn relative overflow-hidden bg-emerald-50 border-2 border-emerald-500 text-emerald-800 p-4 md:p-5 rounded-2xl text-left font-bold transition-all duration-300 text-sm md:text-base flex justify-between items-center w-full z-10 shadow-[0_0_0_4px_rgba(16,185,129,0.1)] scale-[1.02]";
+            btn.innerHTML = `
+                <span class="pr-4 z-10">${text}</span>
+                <span class="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs flex-shrink-0 z-10 scale-0 animate-[popIn_0.3s_forwards]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </span>
+            `;
+        }
+
+        function setIncorrectUI(btn, text) {
+            btn.className = "quiz-btn relative overflow-hidden bg-rose-50 border-2 border-rose-500 text-rose-800 p-4 md:p-5 rounded-2xl text-left font-bold transition-all duration-300 text-sm md:text-base flex justify-between items-center w-full opacity-100 animate-[shake_0.4s_ease-in-out]";
+            btn.innerHTML = `
+                <span class="pr-4 z-10">${text}</span>
+                <span class="w-6 h-6 rounded-full bg-rose-500 flex items-center justify-center text-white text-xs flex-shrink-0 z-10 scale-0 animate-[popIn_0.3s_forwards]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </span>
+            `;
+        }
+
+        function handleTimeOut() {
+            if (isAnswered) return;
+            isAnswered = true;
+            
+            timerBox.classList.remove('animate-pulse');
+            showToast('⏰ Waktu Habis!', 'red');
+
+            const correctIndex = quizData[currentQuestionIndex].correctIndex;
+            disableAllButtons();
+
+            const correctBtn = buttons[correctIndex];
+            const correctText = quizData[currentQuestionIndex].options[correctIndex];
+            setCorrectUI(correctBtn, correctText);
+
+            showNextButton();
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (isAnswered) return;
+            isAnswered = true;
+            
+            clearInterval(timerInterval);
+            timerBox.classList.remove('animate-pulse');
+
+            const correctIndex = quizData[currentQuestionIndex].correctIndex;
+            disableAllButtons();
+
+            const selectedBtn = buttons[selectedIndex];
+            const selectedText = quizData[currentQuestionIndex].options[selectedIndex];
+
+            if (selectedIndex === correctIndex) {
+                const timeBonus = timeLeft * 10;
+                const pointsEarned = 600 + timeBonus;
+                
+                score += pointsEarned;
+                scoreDisplay.classList.add('scale-150', 'text-emerald-500');
+                setTimeout(() => scoreDisplay.classList.remove('scale-150', 'text-emerald-500'), 300);
+                scoreDisplay.innerText = score;
+
+                showToast(`Kerja Bagus! +${pointsEarned}`, 'green');
+                setCorrectUI(selectedBtn, selectedText);
+            } else {
+                showToast('Oops! Jawaban kurang tepat.', 'red');
+                setIncorrectUI(selectedBtn, selectedText);
+                
+                const correctBtn = buttons[correctIndex];
+                const correctText = quizData[currentQuestionIndex].options[correctIndex];
+                setCorrectUI(correctBtn, correctText);
+            }
+
+            showNextButton();
+        }
+
+        function showNextButton() {
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtnText.innerText = "Lihat Hasil Akhir";
+            } else {
+                nextBtnText.innerText = "Selanjutnya";
+            }
+            nextBtnContainer.classList.remove('hidden');
+            setTimeout(() => {
+                nextBtnContainer.classList.remove('opacity-0');
+                nextBtnContainer.classList.add('opacity-100');
+            }, 50);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            clearInterval(timerInterval);
+            
+            switchView("quiz-area", "result-area", () => {
+                
+                animateScoreValue("final-score", 0, score, 2000); 
+            });
+            
+            progressBar.style.width = "100%";
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreDisplay.innerText = score;
+            document.getElementById("final-score").innerText = "0";
+            
+            shuffleArray(quizData);
+            
+            switchView("result-area", "quiz-area", () => {
+                loadQuestion(); 
+            });
+        }
+    </script>
+    
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</body>
+</html>

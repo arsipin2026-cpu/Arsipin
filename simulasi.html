@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Kearsipan - Arsipin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://bernardo-castilho.github.io/DragDropTouch/DragDropTouch.js"></script>
+    <style>
+        html, body { 
+            overscroll-behavior-y: none; 
+        }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dragging { opacity: 0.6; transform: scale(1.05); }
+        .drag-over { border-color: #4f46e5 !important; background-color: #eef2ff !important; transform: scale(1.02); }
+        .drag-over-kode { background-color: #eef2ff !important; border-color: #4f46e5 !important; transform: scale(1.05); }
+
+        #toast { 
+            visibility: hidden; min-width: 250px; text-align: center; border-radius: 999px; 
+            padding: 12px 24px; position: fixed; z-index: 1000; bottom: 30px; left: 50%; 
+            transform: translateX(-50%); opacity: 0; transition: all 0.4s; font-weight: 600; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); 
+        }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+    </style>
+</head>
+<body class="bg-[#FAFAFA] text-slate-800 min-h-screen selection:bg-indigo-500 selection:text-white flex flex-col overflow-x-hidden">
+    
+    <div id="imageModal" class="hidden fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-sm flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" onclick="closeModal()">
+        <span class="absolute top-6 right-8 text-white text-5xl cursor-pointer hover:text-slate-300 transition-colors">&times;</span>
+        <img id="modalImage" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl scale-95 transition-transform duration-300 object-contain" src="" alt="Zoomed Document" onclick="event.stopPropagation()">
+    </div>
+
+    <div id="toast">Notifikasi</div>
+
+    <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="font-bold text-2xl tracking-tight text-white flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-10 w-auto">
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="index.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Materi</a>
+                    <a href="video.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Video</a>
+                    <a href="simulasi.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-full font-semibold text-sm shadow-inner hover:bg-slate-700 transition-all">Simulasi</a>
+                    <a href="kuis.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-full font-semibold text-sm ml-4 transition-all shadow-sm hover:shadow-lg hover:-translate-y-1">Main Kuis!</a>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white transition-colors focus:outline-none">
+                    <svg id="menuIcon" class="w-7 h-7 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 py-4 space-y-2 shadow-xl absolute w-full opacity-0 -translate-y-4 transition-all duration-300 ease-in-out">
+            <a href="index.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Materi Pengantar</a>
+            <a href="video.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Video Pembelajaran</a>
+            <a href="simulasi.html" class="block py-3 px-4 bg-slate-800 rounded-xl font-semibold text-indigo-400 hover:scale-[1.02] transition-transform">Simulasi Praktik</a>
+            <a href="kuis.html" class="block py-3 px-4 bg-indigo-600 text-white rounded-xl text-center mt-4 font-semibold shadow-sm hover:bg-indigo-500 hover:scale-[1.02] transition-all">Main Kuis!</a>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 sm:py-16 flex-grow w-full">
+        
+        <div class="mb-8 md:mb-10 text-center" id="progress-container">
+            <h1 class="text-2xl md:text-4xl font-extrabold tracking-tight text-slate-900 mb-4">Ruang Simulasi Kearsipan</h1>
+            <div class="flex flex-wrap justify-center items-center gap-2 text-xs md:text-sm font-bold text-slate-400">
+                <span id="step-1" class="px-4 py-1.5 bg-indigo-600 text-white rounded-full transition-colors">1. Klasifikasi</span>
+                <span class="text-slate-300 hidden md:inline">→</span>
+                <span id="step-2" class="px-4 py-1.5 bg-slate-200 rounded-full transition-colors">2. Penyimpanan</span>
+                <span class="text-slate-300 hidden md:inline">→</span>
+                <span id="step-3" class="px-4 py-1.5 bg-slate-200 rounded-full transition-colors">3. Penemuan</span>
+            </div>
+        </div>
+
+        <div id="level-1" class="fade-in bg-white p-5 md:p-10 rounded-3xl border border-slate-200 shadow-sm">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">Level 1: Mengklasifikasi Surat</h2>
+            <p class="text-sm md:text-base text-slate-500 mb-6 md:mb-8">Pilih salah satu surat, amati isinya, lalu pilih Kode Klasifikasi yang tepat berdasarkan materi.</p>
+
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+                
+                <div class="w-full lg:w-3/5 bg-amber-50 p-4 md:p-6 rounded-2xl border border-amber-200 shadow-inner flex flex-col">
+                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+                        <button onclick="pilihSurat(1)" id="tab-1" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg whitespace-nowrap transition-colors">Surat 1</button>
+                        <button onclick="pilihSurat(2)" id="tab-2" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 font-bold rounded-lg whitespace-nowrap transition-colors">Surat 2</button>
+                        <button onclick="pilihSurat(3)" id="tab-3" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 font-bold rounded-lg whitespace-nowrap transition-colors">Surat 3</button>
+                        <button onclick="pilihSurat(4)" id="tab-4" class="px-4 py-2 bg-slate-200 text-slate-700 hover:bg-slate-300 font-bold rounded-lg whitespace-nowrap transition-colors">Surat 4</button>
+                    </div>
+
+                    <div class="bg-white p-2 rounded-xl border border-amber-200 shadow-sm text-center flex-grow flex items-center justify-center h-[350px] md:h-[650px] overflow-hidden group cursor-zoom-in" onclick="openModal(document.getElementById('gambar-surat').src)">
+                        <div class="relative w-full h-full flex justify-center items-center">
+                            <img id="gambar-surat" src="Surat kepegawaian.jpeg" alt="Gambar Surat" class="max-w-full h-full object-contain rounded transition-transform duration-300 group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300 rounded">
+                                <span class="bg-slate-900/80 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-full backdrop-blur-sm shadow-lg">🔍 Klik untuk Zoom Penuh</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-2/5 bg-slate-50 p-5 md:p-6 rounded-2xl border border-slate-200">
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Pilih Kode untuk <span id="label-surat-aktif" class="text-indigo-600 uppercase">Surat 1</span>:</label>
+                    <p class="text-xs text-slate-500 mb-6 bg-indigo-50 text-indigo-700 p-3 rounded-lg border border-indigo-100 font-medium">
+                        💡 <strong>Fokus:</strong> Pilih kode surat yang sesuai dari daftar materi. Simulasi Level 2 dan 3 selanjutnya akan otomatis mengikuti dokumen ini!
+                    </p>
+                    
+                    <select id="select-kode" class="w-full px-4 py-4 rounded-xl border-2 border-slate-300 focus:border-indigo-500 outline-none transition-all mb-4 text-sm md:text-base font-bold text-slate-800 bg-white cursor-pointer hover:border-indigo-400">
+                        <option value="" disabled selected>-- Pilih Kode Klasifikasi --</option>
+                        
+                        <optgroup label="KEPEGAWAIAN (KP)">
+                            <option value="KP.00.1">KP.00.1 - Lamaran Pekerjaan</option>
+                            <option value="KP.00.2">KP.00.2 - SK</option>
+                            <option value="KP.01.1">KP.01.1 - Perjalanan Dinas</option>
+                            <option value="KP.01.2">KP.01.2 - Surat Tugas</option>
+                            <option value="KP.01.3">KP.01.3 - Corporate Social Responsibility (CSR)</option>
+                            <option value="KP.02.1">KP.02.1 - Presensi Karyawan</option>
+                            <option value="KP.02.2">KP.02.2 - Surat Keputusan</option>
+                            <option value="KP.02.3">KP.02.3 - To Do List Karyawan</option>
+                            <option value="KP.02.4">KP.02.4 - Tata Tertib Perusahaan</option>
+                            <option value="KP.02.5">KP.02.5 - Form Penilaian Karyawan</option>
+                            <option value="KP.03.1">KP.03.1 - Izin Sakit</option>
+                            <option value="KP.03.2">KP.03.2 - Izin Cuti</option>
+                        </optgroup>
+                        
+                        <optgroup label="PEMASARAN (PM)">
+                            <option value="PM.00.1">PM.00.1 - Perkenalan Perusahaan</option>
+                            <option value="PM.00.2">PM.00.2 - Permintaan Penawaran</option>
+                            <option value="PM.00.3">PM.00.3 - Penawaran</option>
+                            <option value="PM.00.4">PM.00.4 - Pesanan</option>
+                            <option value="PM.00.5">PM.00.5 - Konfirmasi Pesanan</option>
+                            <option value="PM.00.6">PM.00.6 - Penagihan</option>
+                            <option value="PM.00.7">PM.00.7 - Pembayaran</option>
+                            <option value="PM.00.8">PM.00.8 - Pemberitahuan Pengiriman Pesanan</option>
+                            <option value="PM.00.9">PM.00.9 - Surat Jalan</option>
+                            <option value="PM.00.10">PM.00.10 - Penerimaan Pesanan</option>
+                            <option value="PM.01.1">PM.01.1 - Brosur</option>
+                            <option value="PM.01.2">PM.01.2 - Katalog</option>
+                            <option value="PM.01.3">PM.01.3 - Laporan Iklan</option>
+                        </optgroup>
+                        
+                        <optgroup label="KEUANGAN (KU)">
+                            <option value="KU.00.1">KU.00.1 - Pengajuan Gaji</option>
+                            <option value="KU.00.2">KU.00.2 - Draft Gaji</option>
+                            <option value="KU.01.1">KU.01.1 - Kwitansi</option>
+                            <option value="KU.01.2">KU.01.2 - Nota</option>
+                            <option value="KU.01.3">KU.01.3 - Faktur</option>
+                            <option value="KU.01.4">KU.01.4 - Slip Gaji</option>
+                            <option value="KU.02.1">KU.02.1 - Neraca</option>
+                            <option value="KU.02.2">KU.02.2 - Laporan Kas Kecil (Petty Cash)</option>
+                            <option value="KU.02.3">KU.02.3 - Laporan Laba/Rugi</option>
+                            <option value="KU.02.4">KU.02.4 - Laporan Perubahan Modal</option>
+                            <option value="KU.02.5">KU.02.5 - Laporan Penjualan</option>
+                            <option value="KU.02.6">KU.02.6 - Laporan Arus Kas</option>
+                            <option value="KU.02.7">KU.02.7 - Jurnal Penerimaan Kas</option>
+                            <option value="KU.02.8">KU.02.8 - Lain-lain</option>
+                            <option value="KU.03.1">KU.03.1 - PKB</option>
+                            <option value="KU.03.2">KU.03.2 - PBB</option>
+                            <option value="KU.03.3">KU.03.3 - PPH</option>
+                            <option value="KU.04.1">KU.04.1 - Pembelian</option>
+                            <option value="KU.04.2">KU.04.2 - Perbaikan</option>
+                            <option value="KU.05.1">KU.05.1 - Kendaraan</option>
+                            <option value="KU.05.2">KU.05.2 - Gedung</option>
+                        </optgroup>
+
+                        <optgroup label="UMUM (UM)">
+                            <option value="UM.00.1">UM.00.1 - Undangan Rapat</option>
+                            <option value="UM.00.2">UM.00.2 - Undangan Pelatihan</option>
+                            <option value="UM.00.3">UM.00.3 - Undangan Evaluasi</option>
+                            <option value="UM.00.4">UM.00.4 - Undangan Seminar</option>
+                            <option value="UM.01.1">UM.01.1 - MOU</option>
+                            <option value="UM.01.2">UM.01.2 - Kontrak Kerja</option>
+                            <option value="UM.02.1">UM.02.1 - Pengajuan Proposal</option>
+                            <option value="UM.02.2">UM.02.2 - Pengadaan Barang</option>
+                            <option value="UM.03.1">UM.03.1 - Daftar Hadir Peserta</option>
+                            <option value="UM.03.2">UM.03.2 - Susunan Acara</option>
+                            <option value="UM.03.3">UM.03.3 - Notulen</option>
+                            <option value="UM.03.4">UM.03.4 - Agenda</option>
+                            <option value="UM.04.1">UM.04.1 - Akta Pendirian</option>
+                            <option value="UM.04.2">UM.04.2 - TDP</option>
+                            <option value="UM.04.3">UM.04.3 - SITU</option>
+                            <option value="UM.04.4">UM.04.4 - SIUP</option>
+                            <option value="UM.04.5">UM.04.5 - NPWP</option>
+                            <option value="UM.05.1">UM.05.1 - LPT</option>
+                            <option value="UM.05.2">UM.05.2 - Buku Tamu</option>
+                            <option value="UM.05.3">UM.05.3 - Lain-lain</option>
+                        </optgroup>
+                    </select>
+                    
+                    <button onclick="verifikasiKode()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 md:py-4 rounded-xl transition-all shadow-md text-base md:text-lg">Verifikasi Kode & Lanjut</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="level-2" class="hidden fade-in bg-white p-5 md:p-10 rounded-3xl border border-slate-200 shadow-sm relative">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">Level 2: Penyimpanan Surat</h2>
+            <p class="text-sm md:text-lg text-slate-500 mb-6 md:mb-8">Tarik (Drag) surat di bawah ini ke laci utamanya. Saat mendekati laci, daftar kode akan muncul. Lepaskan tepat di kode yang sesuai!</p>
+
+            <div class="flex flex-col items-center w-full">
+                
+                <div class="flex justify-center mb-6 md:mb-12 w-full min-h-[120px] sticky top-[85px] z-40 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-slate-200" id="tumpukan-surat">
+                    <div id="drag-kp" draggable="true" ondragstart="drag(event)" data-kode="KP.01.2" class="hidden cursor-grab bg-white p-1.5 w-24 md:w-32 rounded-xl border-2 border-indigo-300 shadow-xl text-center hover:-translate-y-1 transition-transform relative">
+                        <img src="Surat kepegawaian.jpeg" class="w-full h-16 md:h-24 object-cover rounded mb-1 border border-slate-200 pointer-events-none">
+                        <strong class="text-indigo-800 block text-[10px] md:text-xs pointer-events-none leading-tight py-1">Tarik Saya<br>(KP.01.2)</strong>
+                    </div>
+                    <div id="drag-ku" draggable="true" ondragstart="drag(event)" data-kode="KU.04.2" class="hidden cursor-grab bg-white p-1.5 w-24 md:w-32 rounded-xl border-2 border-emerald-300 shadow-xl text-center hover:-translate-y-1 transition-transform relative">
+                        <img src="Surat Keuangan.jpeg" class="w-full h-16 md:h-24 object-cover rounded mb-1 border border-slate-200 pointer-events-none">
+                        <strong class="text-emerald-800 block text-[10px] md:text-xs pointer-events-none leading-tight py-1">Tarik Saya<br>(KU.04.2)</strong>
+                    </div>
+                    <div id="drag-pm" draggable="true" ondragstart="drag(event)" data-kode="PM.00.3" class="hidden cursor-grab bg-white p-1.5 w-24 md:w-32 rounded-xl border-2 border-amber-300 shadow-xl text-center hover:-translate-y-1 transition-transform relative">
+                        <img src="Surat Pemasaran.jpeg" class="w-full h-16 md:h-24 object-cover rounded mb-1 border border-slate-200 pointer-events-none">
+                        <strong class="text-amber-800 block text-[10px] md:text-xs pointer-events-none leading-tight py-1">Tarik Saya<br>(PM.00.3)</strong>
+                    </div>
+                    <div id="drag-um" draggable="true" ondragstart="drag(event)" data-kode="UM.00.1" class="hidden cursor-grab bg-white p-1.5 w-24 md:w-32 rounded-xl border-2 border-purple-300 shadow-xl text-center hover:-translate-y-1 transition-transform relative">
+                        <img src="Surat Umum (Undangan Rapat).jpeg" class="w-full h-16 md:h-24 object-cover rounded mb-1 border border-slate-200 pointer-events-none">
+                        <strong class="text-purple-800 block text-[10px] md:text-xs pointer-events-none leading-tight py-1">Tarik Saya<br>(UM.00.1)</strong>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 w-full relative z-10">
+                    
+                    <div ondragover="allowDropMain(event, 'KP')" class="bg-blue-50 border-2 border-dashed border-blue-400 p-2 md:p-4 rounded-2xl md:rounded-3xl flex flex-col items-center min-h-[160px] md:min-h-[200px] transition-all relative shadow-sm">
+                        <span class="text-3xl md:text-5xl mb-1 md:mb-2 pointer-events-none mt-2 md:mt-4">📁</span>
+                        <span class="font-bold text-blue-900 text-xs md:text-base pointer-events-none text-center">Kepegawaian (KP)</span>
+                        <div id="codes-KP" class="codes-container hidden w-full grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2.5 mt-auto pt-3 md:pt-6">
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KP.00.1" class="kode-drop-zone bg-white border border-blue-200 text-blue-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KP.00.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KP.01.2" class="kode-drop-zone bg-white border border-blue-200 text-blue-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KP.01.2</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KP.02.1" class="kode-drop-zone bg-white border border-blue-200 text-blue-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KP.02.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KP.03.1" class="kode-drop-zone bg-white border border-blue-200 text-blue-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KP.03.1</div>
+                        </div>
+                    </div>
+
+                    <div ondragover="allowDropMain(event, 'KU')" class="bg-emerald-50 border-2 border-dashed border-emerald-400 p-2 md:p-4 rounded-2xl md:rounded-3xl flex flex-col items-center min-h-[160px] md:min-h-[200px] transition-all relative shadow-sm">
+                        <span class="text-3xl md:text-5xl mb-1 md:mb-2 pointer-events-none mt-2 md:mt-4">📁</span>
+                        <span class="font-bold text-emerald-900 text-xs md:text-base pointer-events-none text-center">Keuangan (KU)</span>
+                        <div id="codes-KU" class="codes-container hidden w-full grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2.5 mt-auto pt-3 md:pt-6">
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KU.01.1" class="kode-drop-zone bg-white border border-emerald-200 text-emerald-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KU.01.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KU.03.2" class="kode-drop-zone bg-white border border-emerald-200 text-emerald-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KU.03.2</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KU.04.2" class="kode-drop-zone bg-white border border-emerald-200 text-emerald-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KU.04.2</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="KU.05.1" class="kode-drop-zone bg-white border border-emerald-200 text-emerald-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">KU.05.1</div>
+                        </div>
+                    </div>
+                    
+                    <div ondragover="allowDropMain(event, 'PM')" class="bg-amber-50 border-2 border-dashed border-amber-400 p-2 md:p-4 rounded-2xl md:rounded-3xl flex flex-col items-center min-h-[160px] md:min-h-[200px] transition-all relative shadow-sm">
+                        <span class="text-3xl md:text-5xl mb-1 md:mb-2 pointer-events-none mt-2 md:mt-4">📁</span>
+                        <span class="font-bold text-amber-900 text-xs md:text-base pointer-events-none text-center">Pemasaran (PM)</span>
+                        <div id="codes-PM" class="codes-container hidden w-full grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2.5 mt-auto pt-3 md:pt-6">
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="PM.00.1" class="kode-drop-zone bg-white border border-amber-200 text-amber-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">PM.00.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="PM.00.3" class="kode-drop-zone bg-white border border-amber-200 text-amber-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">PM.00.3</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="PM.01.1" class="kode-drop-zone bg-white border border-amber-200 text-amber-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">PM.01.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="PM.01.3" class="kode-drop-zone bg-white border border-amber-200 text-amber-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">PM.01.3</div>
+                        </div>
+                    </div>
+
+                    <div ondragover="allowDropMain(event, 'UM')" class="bg-purple-50 border-2 border-dashed border-purple-400 p-2 md:p-4 rounded-2xl md:rounded-3xl flex flex-col items-center min-h-[160px] md:min-h-[200px] transition-all relative shadow-sm">
+                        <span class="text-3xl md:text-5xl mb-1 md:mb-2 pointer-events-none mt-2 md:mt-4">📁</span>
+                        <span class="font-bold text-purple-900 text-xs md:text-base pointer-events-none text-center">Umum (UM)</span>
+                        <div id="codes-UM" class="codes-container hidden w-full grid grid-cols-1 md:grid-cols-2 gap-1.5 md:gap-2.5 mt-auto pt-3 md:pt-6">
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="UM.00.1" class="kode-drop-zone bg-white border border-purple-200 text-purple-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">UM.00.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="UM.01.2" class="kode-drop-zone bg-white border border-purple-200 text-purple-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">UM.01.2</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="UM.03.1" class="kode-drop-zone bg-white border border-purple-200 text-purple-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">UM.03.1</div>
+                            <div ondrop="dropToCode(event)" ondragleave="leaveCode(event)" ondragover="allowDropCode(event)" data-kode="UM.04.1" class="kode-drop-zone bg-white border border-purple-200 text-purple-800 text-xs md:text-sm font-extrabold py-2 rounded-lg text-center shadow-sm cursor-pointer transition-all">UM.04.1</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="level-3" class="hidden fade-in bg-white p-5 md:p-10 rounded-3xl border border-slate-200 shadow-sm">
+            <h2 class="text-xl md:text-2xl font-bold text-slate-900 mb-2">Level 3: Penemuan Kembali</h2>
+            
+            <div class="bg-indigo-50 border border-indigo-200 p-4 md:p-5 rounded-xl mb-6 md:mb-8 flex items-start gap-3 md:gap-4">
+                <span class="text-2xl md:text-3xl mt-1">👨‍💼</span>
+                <div>
+                    <p class="text-indigo-900 font-bold text-xs md:text-sm uppercase mb-1">Instruksi Pimpinan:</p>
+                    <p class="text-indigo-800 font-medium text-sm md:text-lg leading-relaxed">"Tolong carikan arsip <strong id="instruksi-nama" class="text-indigo-900 bg-indigo-200 px-2 py-0.5 rounded">...</strong> yang baru saja kamu simpan. Masukkan kodenya di laci yang tepat, lalu letakkan di Meja Jawaban."</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row gap-6 lg:gap-8">
+                <div class="w-full lg:w-1/2">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2 text-base md:text-lg">Lemari Arsip Utama</h3>
+                    <div class="space-y-3 md:space-y-4">
+                        
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="toggleFolder('isi-kp')" class="w-full bg-slate-50 p-4 md:p-5 text-left font-bold text-slate-700 hover:bg-slate-100 flex justify-between text-base md:text-lg transition-colors">
+                                <span>📁 Kepegawaian (KP)</span> <span>▾</span>
+                            </button>
+                            <div id="isi-kp" class="hidden p-4 md:p-5 bg-white border-t border-slate-100">
+                                <label class="text-xs md:text-sm font-bold text-slate-500 mb-2 block">Ketik Kode Pencarian:</label>
+                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+                                    <input type="text" id="cari-kp" autocomplete="off" placeholder="Contoh: KP.00.0" class="w-full flex-grow px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 uppercase font-bold text-base md:text-lg">
+                                    <button onclick="prosesCari('kp', 'KP.01.2', 'file-target-kp')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap">Cari</button>
+                                </div>
+                                <div id="file-target-kp" draggable="true" ondragstart="drag(event)" class="hidden mt-6 cursor-grab p-3 bg-blue-50 border-2 border-blue-300 shadow-md rounded-xl text-center hover:-translate-y-1 transition-all relative z-50 group">
+                                    <img src="Surat kepegawaian.jpeg" class="w-full h-24 md:h-32 object-cover rounded mb-2 border border-slate-200 pointer-events-none group-data-[dropped=true]:h-auto group-data-[dropped=true]:max-h-64">
+                                    <span class="font-bold text-blue-900 text-sm md:text-base pointer-events-none">Surat Tugas</span><br>
+                                    <span class="text-indigo-600 font-bold text-xs md:text-sm pointer-events-none">(KP.01.2)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="toggleFolder('isi-ku')" class="w-full bg-slate-50 p-4 md:p-5 text-left font-bold text-slate-700 hover:bg-slate-100 flex justify-between text-base md:text-lg transition-colors">
+                                <span>📁 Keuangan (KU)</span> <span>▾</span>
+                            </button>
+                            <div id="isi-ku" class="hidden p-4 md:p-5 bg-white border-t border-slate-100">
+                                <label class="text-xs md:text-sm font-bold text-slate-500 mb-2 block">Ketik Kode Pencarian:</label>
+                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+                                    <input type="text" id="cari-ku" autocomplete="off" placeholder="Contoh: KU.00.0" class="w-full flex-grow px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 uppercase font-bold text-base md:text-lg">
+                                    <button onclick="prosesCari('ku', 'KU.04.2', 'file-target-ku')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap">Cari</button>
+                                </div>
+                                <div id="file-target-ku" draggable="true" ondragstart="drag(event)" class="hidden mt-6 cursor-grab p-3 bg-emerald-50 border-2 border-emerald-300 shadow-md rounded-xl text-center hover:-translate-y-1 transition-all relative z-50 group">
+                                    <img src="Surat Keuangan.jpeg" class="w-full h-24 md:h-32 object-cover rounded mb-2 border border-slate-200 pointer-events-none group-data-[dropped=true]:h-auto group-data-[dropped=true]:max-h-64">
+                                    <span class="font-bold text-emerald-900 text-sm md:text-base pointer-events-none">Permohonan Bayar</span><br>
+                                    <span class="text-indigo-600 font-bold text-xs md:text-sm pointer-events-none">(KU.04.2)</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="toggleFolder('isi-pm')" class="w-full bg-slate-50 p-4 md:p-5 text-left font-bold text-slate-700 hover:bg-slate-100 flex justify-between text-base md:text-lg transition-colors">
+                                <span>📁 Pemasaran (PM)</span> <span>▾</span>
+                            </button>
+                            <div id="isi-pm" class="hidden p-4 md:p-5 bg-white border-t border-slate-100">
+                                <label class="text-xs md:text-sm font-bold text-slate-500 mb-2 block">Ketik Kode Pencarian:</label>
+                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+                                    <input type="text" id="cari-pm" autocomplete="off" placeholder="Contoh: PM.00.0" class="w-full flex-grow px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 uppercase font-bold text-base md:text-lg">
+                                    <button onclick="prosesCari('pm', 'PM.00.3', 'file-target-pm')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap">Cari</button>
+                                </div>
+                                <div id="file-target-pm" draggable="true" ondragstart="drag(event)" class="hidden mt-6 cursor-grab p-3 bg-amber-50 border-2 border-amber-300 shadow-md rounded-xl text-center hover:-translate-y-1 transition-all relative z-50 group">
+                                    <img src="Surat Pemasaran.jpeg" class="w-full h-24 md:h-32 object-cover rounded mb-2 border border-slate-200 pointer-events-none group-data-[dropped=true]:h-auto group-data-[dropped=true]:max-h-64">
+                                    <span class="font-bold text-amber-900 text-sm md:text-base pointer-events-none">Penawaran Barang</span><br>
+                                    <span class="text-indigo-600 font-bold text-xs md:text-sm pointer-events-none">(PM.00.3)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                            <button onclick="toggleFolder('isi-um')" class="w-full bg-slate-50 p-4 md:p-5 text-left font-bold text-slate-700 hover:bg-slate-100 flex justify-between text-base md:text-lg transition-colors">
+                                <span>📁 Umum (UM)</span> <span>▾</span>
+                            </button>
+                            <div id="isi-um" class="hidden p-4 md:p-5 bg-white border-t border-slate-100">
+                                <label class="text-xs md:text-sm font-bold text-slate-500 mb-2 block">Ketik Kode Pencarian:</label>
+                                <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+                                    <input type="text" id="cari-um" autocomplete="off" placeholder="Contoh: UM.00.0" class="w-full flex-grow px-4 py-3 border border-slate-300 rounded-lg outline-none focus:border-indigo-500 uppercase font-bold text-base md:text-lg">
+                                    <button onclick="prosesCari('um', 'UM.00.1', 'file-target-um')" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-bold transition-colors whitespace-nowrap">Cari</button>
+                                </div>
+                                <div id="file-target-um" draggable="true" ondragstart="drag(event)" class="hidden mt-6 cursor-grab p-3 bg-purple-50 border-2 border-purple-300 shadow-md rounded-xl text-center hover:-translate-y-1 transition-all relative z-50 group">
+                                    <img src="Surat Umum (Undangan Rapat).jpeg" class="w-full h-24 md:h-32 object-cover rounded mb-2 border border-slate-200 pointer-events-none group-data-[dropped=true]:h-auto group-data-[dropped=true]:max-h-64">
+                                    <span class="font-bold text-purple-900 text-sm md:text-base pointer-events-none">Undangan Rapat</span><br>
+                                    <span class="text-indigo-600 font-bold text-xs md:text-sm pointer-events-none">(UM.00.1)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2 flex flex-col mt-6 lg:mt-0">
+                    <h3 class="font-bold text-slate-700 mb-4 border-b pb-2 text-base md:text-lg">Meja Jawaban (Tujuan Akhir)</h3>
+                    <div id="meja-pimpinan" ondrop="dropLevel3(event)" ondragover="allowDrop(event)" class="flex-grow bg-slate-50 border-4 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center p-6 md:p-8 text-slate-400 font-bold transition-all min-h-[250px] md:min-h-[300px] relative z-10">
+                        <span class="text-5xl md:text-6xl mb-4 pointer-events-none opacity-50">📥</span>
+                        <span class="pointer-events-none text-center text-sm md:text-xl">Letakkan File Arsip<br>di kotak ini</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="level-success" class="hidden fade-in bg-white p-8 md:p-12 text-center rounded-3xl border border-slate-200 shadow-lg mt-6 md:mt-10">
+            <div class="text-6xl md:text-[100px] mb-4 md:mb-6">🏆</div>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-slate-900 mb-4 md:mb-6">Simulasi Kearsipan Selesai!</h2>
+            <p class="text-slate-500 mb-8 md:mb-10 text-sm md:text-lg max-w-2xl mx-auto">Luar biasa! Anda telah berhasil menguasai 3 tahapan utama Sistem Subjek: Klasifikasi, Penyimpanan ke dalam laci bernomor kode, dan Penemuan Kembali arsip secara akurat.</p>
+            <button onclick="location.reload()" class="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full transition-all shadow-md text-base md:text-lg">Mainkan Ulang Simulasi</button>
+        </div>
+
+    </main>
+
+    <footer class="bg-slate-900 border-t border-slate-800 w-full mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-xs md:text-sm text-slate-500 font-medium text-center md:text-left">
+                <div class="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-6 md:h-7 w-auto">
+                </div>
+                <p>&copy; 2026 arsipin. All rights reserved.</p>
+                <p>Dibuat dengan <span class="text-rose-500 animate-pulse inline-block">❤️</span> untuk pendidikan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function showToast(msg, type) {
+            const toast = document.getElementById("toast");
+            toast.innerHTML = msg;
+            toast.className = type === 'success' 
+                ? 'show bg-emerald-100 text-emerald-800 border border-emerald-200 text-sm md:text-base' 
+                : 'show bg-rose-100 text-rose-800 border border-rose-200 text-sm md:text-base';
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 2500);
+        }
+
+        function toggleMobileMenu(){ 
+            const menu = document.getElementById("mobileMenu");
+            const icon = document.getElementById("menuIcon");
+            
+            if (menu.classList.contains("hidden")) {
+                menu.classList.remove("hidden");
+                setTimeout(() => {
+                    menu.classList.remove("opacity-0", "-translate-y-4");
+                    menu.classList.add("opacity-100", "translate-y-0");
+                    icon.classList.add("rotate-90");
+                }, 10);
+            } else {
+                menu.classList.remove("opacity-100", "translate-y-0");
+                menu.classList.add("opacity-0", "-translate-y-4");
+                icon.classList.remove("rotate-90");
+                setTimeout(() => {
+                    menu.classList.add("hidden");
+                }, 300); 
+            }
+        }
+
+        function openModal(src) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modalImg.src = src;
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalImg.classList.remove('scale-95');
+                modalImg.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.classList.add('opacity-0');
+            modalImg.classList.remove('scale-100');
+            modalImg.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        const dataSurat = {
+            1: { img: 'Surat kepegawaian.jpeg', kode: 'KP.01.2' },
+            2: { img: 'Surat Keuangan.jpeg', kode: 'KU.04.2' },
+            3: { img: 'Surat Pemasaran.jpeg', kode: 'PM.00.3' },
+            4: { img: 'Surat Umum (Undangan Rapat).jpeg', kode: 'UM.00.1' }
+        };
+        
+        let suratAktif = 1;
+
+        function pilihSurat(id) {
+            suratAktif = id;
+            document.getElementById('gambar-surat').src = dataSurat[id].img;
+            document.getElementById('label-surat-aktif').innerText = `Surat ${id}`;
+
+            for(let i=1; i<=4; i++) {
+                let btn = document.getElementById('tab-'+i);
+                if(i === id) {
+                    btn.className = "px-5 py-2.5 bg-indigo-600 text-white font-bold rounded-xl whitespace-nowrap transition-colors shadow-md";
+                } else {
+                    btn.className = "px-5 py-2.5 bg-slate-200 text-slate-700 hover:bg-slate-300 font-bold rounded-xl whitespace-nowrap transition-colors";
+                }
+            }
+
+            const selectEl = document.getElementById('select-kode');
+            selectEl.selectedIndex = 0; 
+        }
+
+        function verifikasiKode() {
+            const selectEl = document.getElementById('select-kode');
+            const inputVal = selectEl.value;
+
+            if (!inputVal) {
+                showToast("⚠️ Silakan pilih kode klasifikasi terlebih dahulu.", "error");
+                return;
+            }
+
+            const kodeBenar = dataSurat[suratAktif].kode;
+
+            if (inputVal === kodeBenar) {
+                showToast(`✅ Kode Benar! Melanjutkan ke Penyimpanan.`, "success");
+
+                document.getElementById('drag-kp').classList.add('hidden');
+                document.getElementById('drag-ku').classList.add('hidden');
+                document.getElementById('drag-pm').classList.add('hidden');
+                document.getElementById('drag-um').classList.add('hidden');
+
+                if(suratAktif === 1) document.getElementById('drag-kp').classList.remove('hidden');
+                if(suratAktif === 2) document.getElementById('drag-ku').classList.remove('hidden');
+                if(suratAktif === 3) document.getElementById('drag-pm').classList.remove('hidden');
+                if(suratAktif === 4) document.getElementById('drag-um').classList.remove('hidden');
+
+                setTimeout(() => {
+                    document.getElementById('level-1').classList.add('hidden');
+                    document.getElementById('level-2').classList.remove('hidden');
+                    document.getElementById('step-1').className = "px-4 py-1.5 bg-indigo-900 text-indigo-300 rounded-full";
+                    document.getElementById('step-2').className = "px-4 py-1.5 bg-indigo-600 text-white rounded-full shadow-md";
+                    
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 1500);
+            } else {
+                showToast("❌ Kode Salah. Pastikan sesuai dengan materi.", "error");
+            }
+        }
+
+        pilihSurat(1);
+
+        let autoScrollDir = 0;
+        let isDraggingFile = false;
+        let dragMaxScroll = 0;
+
+        document.addEventListener('dragstart', (ev) => {
+            isDraggingFile = true;
+            dragMaxScroll = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
+            
+            ev.dataTransfer.setData("text", ev.target.id);
+            ev.target.classList.add('dragging');
+        });
+
+        document.addEventListener('dragend', (ev) => {
+            isDraggingFile = false;
+            autoScrollDir = 0;
+            if(ev.target && ev.target.classList) {
+                ev.target.classList.remove('dragging');
+            }
+            document.querySelectorAll('.codes-container').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.kode-drop-zone').forEach(el => el.classList.remove('drag-over-kode'));
+            document.getElementById('meja-pimpinan').classList.remove('drag-over');
+        });
+
+        document.addEventListener('dragover', (ev) => {
+            if (!isDraggingFile) return;
+            const edgeSize = 100;
+            if (ev.clientY > window.innerHeight - edgeSize) {
+                autoScrollDir = 1;
+            } else if (ev.clientY < edgeSize) {
+                autoScrollDir = -1;
+            } else {
+                autoScrollDir = 0;
+            }
+        });
+
+        function smoothAutoScroll() {
+            if (isDraggingFile && autoScrollDir !== 0) {
+                if (autoScrollDir === 1 && window.scrollY < dragMaxScroll - 5) {
+                    window.scrollBy(0, 10);
+                } else if (autoScrollDir === -1 && window.scrollY > 0) {
+                    window.scrollBy(0, -10);
+                }
+            }
+            requestAnimationFrame(smoothAutoScroll);
+        }
+        requestAnimationFrame(smoothAutoScroll);
+
+        function allowDropMain(ev, folderId) {
+            ev.preventDefault();
+            document.getElementById('codes-' + folderId).classList.remove('hidden');
+        }
+
+        function allowDropCode(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            ev.currentTarget.classList.add('drag-over-kode');
+        }
+        
+        function leaveCode(ev) {
+            ev.currentTarget.classList.remove('drag-over-kode');
+        }
+
+        function dropToCode(ev) {
+            ev.preventDefault();
+            ev.stopPropagation(); 
+            
+            const dataId = ev.dataTransfer.getData("text");
+            const draggedElement = document.getElementById(dataId);
+            if(!draggedElement) return;
+
+            const expectedKode = draggedElement.getAttribute("data-kode");
+            const dropZoneKode = ev.currentTarget.getAttribute("data-kode");
+
+            if (expectedKode === dropZoneKode) {
+                draggedElement.remove(); 
+
+                ev.currentTarget.classList.remove('bg-white', 'text-blue-800', 'text-emerald-800', 'text-amber-800', 'text-purple-800');
+                ev.currentTarget.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+                ev.currentTarget.innerHTML = "✅ Tepat!";
+                
+                showToast("✅ Arsip Disimpan di Kode yang Benar!", "success");
+                setTimeout(() => { mulaiLevel3(); }, 1500);
+            } else {
+                showToast(`❌ Salah Kode! Itu laci untuk ${dropZoneKode}.`, "error");
+            }
+            
+            document.querySelectorAll('.kode-drop-zone').forEach(el => el.classList.remove('drag-over-kode'));
+        }
+
+        const misiLevel3 = [
+            { nama: "Surat Tugas Kepegawaian", targetId: "file-target-kp" },
+            { nama: "Permohonan Pembayaran", targetId: "file-target-ku" },
+            { nama: "Penawaran Barang Pemasaran", targetId: "file-target-pm" },
+            { nama: "Undangan Rapat Umum", targetId: "file-target-um" }
+        ];
+        let instruksiAktif = null;
+
+        function mulaiLevel3() {
+            document.getElementById('level-2').classList.add('hidden');
+            document.getElementById('level-3').classList.remove('hidden');
+            document.getElementById('step-2').className = "px-4 py-1.5 bg-indigo-900 text-indigo-300 rounded-full";
+            document.getElementById('step-3').className = "px-4 py-1.5 bg-indigo-600 text-white rounded-full shadow-md";
+
+            instruksiAktif = misiLevel3[suratAktif - 1];
+            document.getElementById('instruksi-nama').innerText = instruksiAktif.nama;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleFolder(id) {
+            document.getElementById(id).classList.toggle('hidden');
+        }
+
+        function prosesCari(folderPrefix, kodeBenar, targetFileId) {
+            const inputVal = document.getElementById(`cari-${folderPrefix}`).value.toUpperCase().trim();
+            if (inputVal === kodeBenar) {
+                document.getElementById(targetFileId).classList.remove('hidden');
+                showToast("✅ Kode Benar! Arsip Ditemukan.", "success");
+            } else {
+                showToast("❌ Kode tidak ditemukan di laci ini.", "error");
+            }
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        document.getElementById('meja-pimpinan').addEventListener('dragleave', (e) => {
+            e.currentTarget.classList.remove('drag-over');
+        });
+
+        function dropLevel3(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.remove('drag-over');
+
+            const dataId = ev.dataTransfer.getData("text");
+            const draggedElement = document.getElementById(dataId);
+            
+            if(!draggedElement) {
+                showToast("❌ Gagal membaca file.", "error");
+                return;
+            }
+
+            if (draggedElement.id === instruksiAktif.targetId) {
+                ev.currentTarget.innerHTML = ""; 
+                ev.currentTarget.appendChild(draggedElement);
+                
+                draggedElement.setAttribute('data-dropped', 'true');
+                
+                draggedElement.className = "p-4 md:p-6 bg-emerald-50 border-4 border-emerald-500 text-emerald-900 rounded-2xl w-full max-w-sm flex flex-col items-center shadow-xl cursor-default transition-all";
+                draggedElement.draggable = false;
+                
+                const img = draggedElement.querySelector('img');
+                if (img) {
+                    img.className = "w-full h-auto max-h-48 md:max-h-64 object-contain rounded mb-4 border border-emerald-200 pointer-events-none";
+                }
+
+                showToast("🏆 Selesai! Arsip diserahkan ke Pimpinan.", "success");
+
+                setTimeout(() => {
+                    document.getElementById('level-3').classList.add('hidden');
+                    document.getElementById('progress-container').classList.add('hidden');
+                    document.getElementById('level-success').classList.remove('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 2000);
+            } else {
+                showToast("❌ Pimpinan tidak meminta arsip ini!", "error");
+            }
+        }
+    </script>
+</body>
+</html>

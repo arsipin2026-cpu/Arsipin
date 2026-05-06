@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video - Arsipin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+        }
+      
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+       
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal-element.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-[#FAFAFA] text-slate-800 min-h-screen selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+    
+    <nav class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <a href="index.html" class="font-bold text-2xl tracking-tight text-white flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-10 w-auto">
+                </a>
+                
+                <div class="hidden md:flex items-center space-x-1">
+                    <a href="index.html" class="bg-slate-800 text-white px-5 py-2.5 rounded-full font-semibold text-sm shadow-inner hover:bg-slate-700 transition-all">Materi</a>
+                    <a href="video.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Video</a>
+                    <a href="simulasi.html" class="text-slate-400 hover:bg-slate-800 hover:text-white px-5 py-2.5 rounded-full font-medium text-sm transition-colors">Simulasi</a>
+                    <a href="kuis.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2.5 rounded-full font-semibold text-sm ml-4 transition-all shadow-sm hover:shadow-lg hover:-translate-y-1">Main Kuis!</a>
+                </div>
+
+                <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400 hover:text-white transition-colors focus:outline-none">
+                    <svg id="menuIcon" class="w-7 h-7 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-b border-slate-800 px-4 py-4 space-y-2 shadow-xl absolute w-full opacity-0 -translate-y-4 transition-all duration-300 ease-in-out">
+            <a href="index.html" class="block py-3 px-4 bg-slate-800 rounded-xl font-semibold text-indigo-400 hover:scale-[1.02] transition-transform">Materi Pengantar</a>
+            <a href="video.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Video Pembelajaran</a>
+            <a href="simulasi.html" class="block py-3 px-4 font-medium text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition-colors hover:scale-[1.02] transition-transform">Simulasi Praktik</a>
+            <a href="kuis.html" class="block py-3 px-4 bg-indigo-600 text-white rounded-xl text-center mt-4 font-semibold shadow-sm hover:bg-indigo-500 hover:scale-[1.02] transition-all">Main Kuis!</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-16 sm:py-24 flex-grow w-full">
+        <div class="mb-12 text-center max-w-2xl mx-auto reveal-element">
+            <div class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 font-semibold rounded-full text-sm mb-4 animate-bounce">Galeri Video Pembelajaran</div>
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight text-slate-900">Video Pembelajaran Sistem Subjek</h2>
+            <p class="text-slate-500 text-lg">Tonton video pembelajaran berikut untuk memahami praktik kearsipan sistem subjek dengan lebih mudah dan cepat.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            
+            <div class="bg-white rounded-3xl border border-slate-100/60 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all duration-500 overflow-hidden group reveal-element" style="transition-delay: 100ms;">
+                <div class="h-56 relative overflow-hidden bg-slate-900">
+                   
+                    <iframe class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        src="https://www.youtube-nocookie.com/embed/OrXpRUTvMlM?rel=0&modestbranding=1" 
+                        title="Klasifikasi Sistem Subjek" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wider rounded-md">Teori</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">Klasifikasi Sistem Subjek</h3>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-100/60 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all duration-500 overflow-hidden group reveal-element" style="transition-delay: 200ms;">
+                <div class="h-56 relative overflow-hidden bg-slate-900">
+                   
+                    <iframe class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        src="https://www.youtube-nocookie.com/embed/CeJZtx8W1CU?rel=0&modestbranding=1" 
+                        title="Sistem Penyimpanan Arsip" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-bold uppercase tracking-wider rounded-md">Praktik</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">Sistem Penyimpanan Arsip</h3>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl border border-slate-100/60 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] hover:-translate-y-2 transition-all duration-500 overflow-hidden group reveal-element" style="transition-delay: 300ms;">
+                <div class="h-56 relative overflow-hidden bg-slate-900">
+                    
+                    <iframe class="absolute top-0 left-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                        src="https://www.youtube-nocookie.com/embed/lC6e8IRtCMY?rel=0&modestbranding=1" 
+                        title="Penemuan Kembali Arsip Sistem Subjek" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider rounded-md">Pencarian</span>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors line-clamp-2">Penemuan Kembali Arsip Sistem Subjek</h3>
+                </div>
+            </div> 
+            
+        </div>
+        
+    </main>
+
+    <footer class="bg-slate-900/95 border-t border-slate-800 w-full mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-500 font-medium">
+                <div class="flex items-center gap-2 hover:scale-105 transition-transform duration-300">
+                    <img src="Arsipin_Fix-removebg-preview(1).png" alt="Logo Arsipin" class="h-7 w-auto">
+                </div>
+                <p>&copy; 2026 arsipin. All rights reserved.</p>
+                <p>Dibuat dengan <span class="text-rose-500 animate-pulse inline-block">❤️</span> untuk pendidikan.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+       
+        function toggleMobileMenu(){ 
+            const menu = document.getElementById("mobileMenu");
+            const icon = document.getElementById("menuIcon");
+            
+            if (menu.classList.contains("hidden")) {
+                menu.classList.remove("hidden");
+                setTimeout(() => {
+                    menu.classList.remove("opacity-0", "-translate-y-4");
+                    menu.classList.add("opacity-100", "translate-y-0");
+                    icon.classList.add("rotate-90");
+                }, 10);
+            } else {
+                menu.classList.remove("opacity-100", "translate-y-0");
+                menu.classList.add("opacity-0", "-translate-y-4");
+                icon.classList.remove("rotate-90");
+                setTimeout(() => {
+                    menu.classList.add("hidden");
+                }, 300); 
+            }
+        }
+
+      
+        document.addEventListener('DOMContentLoaded', () => {
+            const revealElements = document.querySelectorAll('.reveal-element');
+            
+            const elementObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1, 
+                rootMargin: "0px 0px -50px 0px"
+            });
+
+            revealElements.forEach(el => {
+                elementObserver.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
